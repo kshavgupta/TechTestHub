@@ -1,10 +1,10 @@
 import { Questions } from "../models/Question.js";
 import { Users } from "../models/User.js";
+import { setCache, invalidateCache } from "../middleware/cache.js";
 
 export const viewProfile = async (request, response) => {
   try {
     const { _id } = request.user;
-
     const user = await Users.findById(_id);
 
     if (!user) {
@@ -42,6 +42,12 @@ export const addQuestion = async (request, response) => {
     const author = await Users.findById(qst.Author);
     author.Questions.push(qst._id);
     await author.save();
+
+    // Invalidate the cache for the specific company and topic
+    invalidateCache("Companies", request.body.Company);
+    invalidateCache("Topics", request.body.Topic);
+    invalidateCache("Authors", request.user._id);
+
     // remove the keyword 'return'
     response.status(201).send(qst);
   } catch (error) {
@@ -66,6 +72,8 @@ export const getQuestions = async (request, response) => {
         .status(404)
         .json({ message: "You have not uploaded any questions." });
     }
+
+    setCache("Authors", _id, questions, 30 * 24 * 60 * 60);
 
     return response.status(200).json({ questions });
   } catch (error) {

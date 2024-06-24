@@ -54,6 +54,7 @@ app.use(cors(corsOptions));
 
 // import { PORT, mongoDBURL } from "./database/db.js";
 import connectDB from "./database/connect.js";
+import redis from "./database/redis.js"; //Comment
 import authRouter from "./routes/auth.js";
 import commentRouter from "./routes/comment.js";
 import questionRouter from "./routes/question.js";

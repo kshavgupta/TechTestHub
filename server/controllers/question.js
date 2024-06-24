@@ -1,6 +1,7 @@
 import { Questions } from "../models/Question.js";
 import { Comments } from "../models/Comment.js";
-import mongoose from "mongoose";
+import { setCache } from "../middleware/cache.js";
+// import mongoose from "mongoose";
 
 export const getQuestion = async (request, response) => {
   try {
@@ -42,13 +43,15 @@ export const getQuestionsbyTopic = async (request, response) => {
         .json({ message: "No question found with the specified topic" });
     }
 
-    return response.status(200).json({
-      data: ques.map((question) => ({
-        _id: question._id,
-        Company: question.Company,
-        Title: question.Title,
-      })),
-    });
+    const data = ques.map((question) => ({
+      _id: question._id,
+      Company: question.Company,
+      Title: question.Title,
+    }));
+
+    setCache("Topics", Topic, data, 7 * 24 * 60 * 60);
+
+    return response.status(200).json({ data: data });
   } catch (error) {
     console.log(error.message);
     response.status(500).send({ message: error.message });
@@ -70,13 +73,15 @@ export const getQuestionsbyCompany = async (request, response) => {
         .json({ message: "No question found with the specified company" });
     }
 
-    return response.status(200).json({
-      data: ques.map((question) => ({
-        _id: question._id,
-        Topic: question.Topic,
-        Title: question.Title,
-      })),
-    });
+    const data = ques.map((question) => ({
+      _id: question._id,
+      Topic: question.Topic,
+      Title: question.Title,
+    }));
+
+    setCache("Companies", Company, data, 2 * 24 * 60 * 60);
+
+    return response.status(200).json({ data: data });
   } catch (error) {
     console.log(error.message);
     response.status(500).send({ message: error.message });
