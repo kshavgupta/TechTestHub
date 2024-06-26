@@ -14,8 +14,8 @@ const ShowQuestionsbyCompany = ({ company }) => {
     axios
       .get(`http://localhost:5555/api/v1/question/getQuestionsbyCompany/${Company}`)
       .then((response) => {
-        if (response.data && Array.isArray(response.data.data)) {
-          setQuestionInfo(response.data.data);
+        if (response.data && Array.isArray(response.data.questions)) {
+          setQuestionInfo(response.data.questions);
         } else {
           console.error('Invalid data structure received from the API.');
         }

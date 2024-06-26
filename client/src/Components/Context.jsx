@@ -4,17 +4,15 @@ const GlobalStateContext = createContext();
 
 const GlobalStateProvider = ({ children }) => {
   const [currentUsername, setCurrentUsername] = useState(() => {
-    // Get the currentUsername from localStorage, defaulting to null if not found
     return localStorage.getItem('currentUsername') || null;
   });
-  const [userLoggedIn, setUserLoggedIn] = useState(() => {
-    // Get the userLoggedIn state from localStorage, defaulting to false if not found
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return JSON.parse(localStorage.getItem('userLoggedIn')) || false;
   });
 
   useEffect(() => {
-    localStorage.setItem('userLoggedIn', JSON.stringify(userLoggedIn));
-  }, [userLoggedIn]);
+    localStorage.setItem('isLoggedIn', JSON.stringify(isLoggedIn));
+  }, [isLoggedIn]);
 
   useEffect(() => {
     localStorage.setItem('currentUsername', currentUsername);
@@ -22,9 +20,9 @@ const GlobalStateProvider = ({ children }) => {
 
   return (
     <GlobalStateContext.Provider value={{
-      userLoggedIn,
+      isLoggedIn,
       currentUsername,
-      setUserLoggedIn,
+      setIsLoggedIn,
       setCurrentUsername
     }}>
       {children}

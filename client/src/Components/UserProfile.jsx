@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
-  Avatar, Box, Card, CardContent, CardHeader, CircularProgress, Container, CssBaseline, 
-  Grid, IconButton, Stack, Typography 
+  Avatar, Button, Box, Card, CardContent, CardHeader, CircularProgress, Container, CssBaseline, 
+  Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Grid, IconButton, 
+  Stack, Typography 
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { alpha } from '@mui/material/styles';
 import { useSnackbar } from 'notistack';
 import Links from './Links';
@@ -18,16 +20,8 @@ const UserProfile = () => {
   const navigate = useNavigate();
   // const { currentUsername } = useContext(GlobalStateContext);
 
-  useEffect(() => {
+  const fetchProfile = useCallback((token) => {
     setLoading(true);
-
-    const token = localStorage.getItem('token');
-    if (!token) {
-      enqueueSnackbar('Please log in to upload a question.', { variant: 'warning' });
-      setLoading(false);
-      navigate('/login');
-    }
-
     axios
       .get(`http://localhost:5555/api/v1/user/viewProfile/`, {
         headers: {
@@ -42,7 +36,10 @@ const UserProfile = () => {
         console.error('Error fetching user profile:', error);
         setLoading(false);
       });
+  }, []);
 
+  const fetchQuestions = useCallback((token) => {
+    setLoading(true);
     axios
       .get(`http://localhost:5555/api/v1/user/getQuestions`, {
         headers: {
@@ -53,7 +50,8 @@ const UserProfile = () => {
         if (response.data && Array.isArray(response.data.questions)) {
           setUserQuestions(response.data.questions);
         } else {
-          console.error('Invalid data structure received from the API.');
+          console.log('No questions uploaded');
+          setUserQuestions([]);
         }
         setLoading(false);
       })
@@ -61,7 +59,20 @@ const UserProfile = () => {
         console.log(error);
         setLoading(false);
       });
-  }, [enqueueSnackbar, navigate]);
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      enqueueSnackbar('Please log in to upload a question.', { variant: 'warning' });
+      setLoading(false);
+      navigate('/login');
+      return;
+    }
+
+    fetchProfile(token);
+    fetchQuestions(token);
+  }, [enqueueSnackbar, navigate, fetchProfile, fetchQuestions]);
 
   const handleBackClick = () => {
     navigate("/");
@@ -70,6 +81,48 @@ const UserProfile = () => {
   const handleQuestionClick = (question) => {
     navigate(`/Question/${question.Title}`, { state: { _id: question._id } });
   };
+
+  const [open, setOpen] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState({});
+
+  const handleClickOpen = (question) => {
+    setSelectedQuestion(question);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedQuestion(null);
+  };
+
+  const handleConfirmDelete = () => {
+    handleDelete(selectedQuestion); // Call the delete handler with the selected question ID
+    handleClose();
+  };
+
+  const handleDelete = (question) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      enqueueSnackbar('Please log in to delete the question.', { variant: 'warning' });
+      return;
+    }
+
+    axios.delete(`http://localhost:5555/api/v1/user/deleteQuestion/${question._id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    .then(() => {
+      enqueueSnackbar('Question deleted successfully.', { variant: 'success' });
+      fetchQuestions(token); 
+      fetchProfile(token); // Call fetchQuestions to update the list of questions
+    })
+    .catch((error) => {
+      console.error('Error deleting question:', error);
+      enqueueSnackbar('Failed to delete the question.', { variant: 'error' });
+    });
+  };
+
 
   return (
     <Box
@@ -159,7 +212,7 @@ const UserProfile = () => {
                   <Typography variant="body1">Email: {userInfo.Email}</Typography>
                 </Grid>
                 <Grid item xs={12}>
-                  <Typography variant="body1">Questions Uploaded: {userInfo.Questions}</Typography>
+                  <Typography variant="body1">Questions Uploaded: {userQuestions.length}</Typography>
                 </Grid>
                 <Grid item xs={12}>
                   <Typography variant="body1">Reputation: {userInfo.Reputation}</Typography>
@@ -211,7 +264,20 @@ const UserProfile = () => {
                           p: 1, 
                         }}
                       >
-                        <CardHeader title={question.Title} />
+                        <CardHeader 
+                          title={question.Title} 
+                          action={
+                            <IconButton
+                              aria-label="delete"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleClickOpen(question)
+                              }}  
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          }
+                        />
                         <CardContent>
                           <Typography variant="body2" color="text.secondary">
                             Company: { question.Company }
@@ -229,6 +295,34 @@ const UserProfile = () => {
           </Grid>
         </Grid>
         <Links />
+        <Dialog
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+          PaperProps={{
+            style: {
+              backgroundSize: 'cover',
+              borderRadius: '10px',
+              outline: '1px solid',
+            },
+          }}
+        >
+          <DialogTitle id="alert-dialog-title">{"Are you sure?"}</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Do you really want to delete this question?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose} color="primary">
+              No
+            </Button>
+            <Button onClick={handleConfirmDelete} color="primary" autoFocus>
+              Yes
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Box>
   );

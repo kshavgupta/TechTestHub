@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
-// import { GlobalStateContext } from './Context';
+import { GlobalStateContext } from './Context';
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import { TextField, Link, Button, Typography, Container, Box, InputAdornment, Checkbox, FormControlLabel, IconButton, Divider } from '@mui/material';
@@ -27,7 +27,7 @@ const SignIn = () => {
   const [Password, setPassword] = useState('');
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-  // const { setUserLoggedIn, setCurrentUsername } = useContext(GlobalStateContext);
+  const { setIsLoggedIn, setCurrentUsername } = useContext(GlobalStateContext);
   const [showPassword, setShowPassword] = useState(false);
   const LPtheme = createTheme(getLPTheme('light'));
 
@@ -43,8 +43,8 @@ const SignIn = () => {
           localStorage.setItem('token', data.token);
           enqueueSnackbar('Login successful', { variant: 'success' });
           navigate('/');
-          // setUserLoggedIn(true);
-          // setCurrentUsername(Username);
+          setIsLoggedIn(true);
+          setCurrentUsername(Username);
         } else {
           alert('Login failed. Please check your credentials.');
         }

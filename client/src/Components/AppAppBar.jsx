@@ -18,7 +18,7 @@ import ToggleColorMode from './ToggleColorMode';
 
 function AppAppBar({ mode, toggleColorMode }) {
   const [open, setOpen] = React.useState(false);
-  const { userLoggedIn, currentUsername } = React.useContext(GlobalStateContext);
+  const { isLoggedIn, currentUsername, setIsLoggedIn, setCurrentUsername } = React.useContext(GlobalStateContext);
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -41,13 +41,21 @@ function AppAppBar({ mode, toggleColorMode }) {
   };
 
   const handleProfileClick = () => {
-    if(userLoggedIn){
+    if(isLoggedIn){
       navigate(`Profile/${currentUsername}`, { state: { name: mode } });
     }
     else{
       enqueueSnackbar('Please, sign in to view Profile.', { variant: 'error' });
     }
   }
+
+  const handleSignOut = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    setCurrentUsername(null);
+    navigate('/');
+    enqueueSnackbar('You have been signed out.', { variant: 'success' });
+  };
 
   return (
     <div>
@@ -148,7 +156,30 @@ function AppAppBar({ mode, toggleColorMode }) {
               }}
             >
               <ToggleColorMode mode={mode} toggleColorMode={toggleColorMode} />
-              <Button
+              {isLoggedIn ? (
+                <Button
+                  color="primary"
+                  variant="text"
+                  size="small"
+                  // component="a"
+                  // target="_blank"
+                  onClick={handleSignOut}
+                >
+                  Sign out
+                </Button>
+              ) : (
+                <Button
+                  color="primary"
+                  variant="text"
+                  size="small"
+                  component="a"
+                  href="/SignIn"
+                  target="_blank"
+                >
+                  Sign in
+                </Button>
+                )}
+              {/* <Button
                 color="primary"
                 variant="text"
                 size="small"
@@ -157,7 +188,7 @@ function AppAppBar({ mode, toggleColorMode }) {
                 target="_blank"
               >
                 Sign in
-              </Button>
+              </Button> */}
               <Button
                 color="primary"
                 variant="contained"
@@ -227,6 +258,18 @@ function AppAppBar({ mode, toggleColorMode }) {
                     </Button>
                   </MenuItem>
                   <MenuItem>
+                  {isLoggedIn ? (
+                    <Button
+                      color="primary"
+                      variant="outlined"
+                      sx={{ width: '100%' }}
+                      // component="a"
+                      // target="_blank"
+                      onClick={handleSignOut}
+                    >
+                      Sign out
+                    </Button>
+                  ) : (
                     <Button
                       color="primary"
                       variant="outlined"
@@ -237,6 +280,17 @@ function AppAppBar({ mode, toggleColorMode }) {
                     >
                       Sign in
                     </Button>
+                  )}
+                    {/* <Button
+                      color="primary"
+                      variant="outlined"
+                      component="a"
+                      href="/SignIn"
+                      target="_blank"
+                      sx={{ width: '100%' }}
+                    >
+                      Sign in
+                    </Button> */}
                   </MenuItem>
                 </Box>
               </Drawer>
