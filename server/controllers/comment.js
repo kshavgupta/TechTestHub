@@ -33,6 +33,44 @@ export const addComment = async (request, response) => {
   }
 };
 
+export const deleteComment = async (request, response) => {
+  const { _id } = request.params;
+  const userId = request.user._id;
+  try {
+    const comment = await Comments.findById(_id);
+    if (!comment) {
+      return response.status(404).json({
+        error: "Comment not found.",
+      });
+    }
+
+    // Check if the user is the author of the comment
+    if (comment.postedBy.toString() !== userId) {
+      return response.status(403).json({
+        error: "You are not authorized to delete this comment.",
+      });
+    }
+
+    // Find the user who posted the comment
+    const user = await Users.findById(comment.postedBy);
+    user.Reputation -= comment.likes;
+    await user.save();
+
+    // Delete the comment
+    await Comments.findByIdAndDelete(_id);
+
+    // Send success response
+    response.status(200).json({
+      message: "Comment deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+    response.status(500).json({
+      error: "Failed to delete the comment.",
+    });
+  }
+};
+
 export const likeComment = async (request, response) => {
   try {
     const userId = request.user._id;
@@ -48,7 +86,7 @@ export const likeComment = async (request, response) => {
     if (comment.likedBy.includes(userId)) {
       return response.status(400).json({
         success: false,
-        message: "You have already liked this comment",
+        message: "You have already upvoted this comment",
       });
     }
 
@@ -63,7 +101,49 @@ export const likeComment = async (request, response) => {
 
     response.status(200).json({
       success: true,
-      message: "Comment liked successfully",
+      message: "You have upvoted the comment.",
+    });
+  } catch (error) {
+    console.error(error);
+    response
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const dislikeComment = async (request, response) => {
+  const userId = request.user._id;
+  const { commentId } = request.params;
+
+  try {
+    const comment = await Comments.findById(commentId);
+
+    if (!comment) {
+      return response
+        .status(404)
+        .json({ success: false, message: "Comment not found." });
+    }
+
+    if (!comment.likedBy.includes(userId)) {
+      return response.status(400).json({
+        success: false,
+        message: "You are not authorized to downvote this comment.",
+      });
+    }
+
+    // Decrement likes and remove user ID from likedBy array
+    comment.likes -= 1;
+    comment.likedBy = comment.likedBy.filter((id) => id.toString() !== userId);
+
+    const author = await Users.findById(comment.postedBy);
+    author.Reputation -= 1;
+
+    await author.save();
+    await comment.save();
+
+    response.status(200).json({
+      success: true,
+      message: "You have downvoted the comment.",
     });
   } catch (error) {
     console.error(error);

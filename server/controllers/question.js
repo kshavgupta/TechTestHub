@@ -1,7 +1,6 @@
 import { Questions } from "../models/Question.js";
 import { Comments } from "../models/Comment.js";
 import { setCache } from "../middleware/cache.js";
-// import mongoose from "mongoose";
 
 export const getQuestion = async (request, response) => {
   try {

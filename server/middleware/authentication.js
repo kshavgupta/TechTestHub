@@ -8,16 +8,18 @@ export default function authenticateToken(request, response, next) {
   if (!token) {
     return response
       .status(401)
-      .json({ message: "Access denied. No token provided." });
+      .json({ success: false, message: "Please sign in to contribute." });
   }
 
   try {
-    const secretKey = process.env.JWT_SECRET || "secret123";
+    const secretKey = process.env.JWT_SECRET;
     const payload = jwt.verify(token, secretKey);
 
     request.user = payload;
     next();
   } catch (error) {
-    return response.status(400).json({ message: "Invalid token." });
+    return response
+      .status(400)
+      .json({ success: false, message: "There is some unusual activity." });
   }
 }

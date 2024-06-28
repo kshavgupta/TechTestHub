@@ -8,27 +8,25 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
-
     Email: {
       type: String,
       required: true,
+      match: [
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+        "Please provide a valid email",
+      ],
+      unique: true,
     },
-
     Username: {
       type: String,
       required: true,
       unique: true,
     },
-
     Password: {
       type: String,
       required: true,
+      minlength: [6, "Password must be a minimum of 6 characters"],
     },
-
-    // GoogleId: {
-    //   type: String,
-    // },
-
     Questions: [
       {
         type: Schema.Types.ObjectId,
@@ -36,7 +34,6 @@ const UserSchema = new Schema(
         default: [],
       },
     ],
-
     Reputation: {
       type: Number,
       default: 0,
@@ -52,19 +49,6 @@ UserSchema.pre("save", async function (next) {
     this.Password = hashedPassword;
   }
   next();
-  // try {
-  //   if (!this.isModified("Password")) {
-  //     return next();
-  //   }
-
-  //   const salt = await bcrypt.genSalt(10);
-  //   const hashedPassword = await bcrypt.hash(this.Password, salt);
-
-  //   this.Password = hashedPassword;
-  //   next();
-  // } catch (error) {
-  //   next(error);
-  // }
 });
 
 export const Users = mongoose.model("Users", UserSchema);

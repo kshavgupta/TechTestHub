@@ -1,59 +1,3 @@
-// import mongoose from "mongoose";
-
-// const questionSchema = mongoose.Schema(
-//   {
-//     Company: {
-//       type: String,
-//       required: true,
-//     },
-
-//     Topic: {
-//       type: String,
-//       required: true,
-//     },
-
-//     Title: {
-//       type: String,
-//       required: true,
-//     },
-
-//     Question: {
-//       type: String,
-//     },
-
-//     Image: {
-//       type: String,
-//       default: "",
-//     },
-
-//     Author: {
-//       type: String,
-//       required: true,
-//     },
-
-//     Comments: [
-//       {
-//         text: {
-//           type: String,
-//           required: true,
-//         },
-//         postedBy: {
-//           type: String,
-//           required: true,
-//         },
-//         likes: {
-//           type: Number,
-//           default: 0,
-//         },
-//         likedBy: [String],
-//       },
-//     ],
-//   },
-//   { timestamps: true }
-// );
-
-// export const Questions = mongoose.model("Questions", questionSchema);
-
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
@@ -70,6 +14,7 @@ const QuestionSchema = new Schema(
     Title: {
       type: String,
       required: true,
+      unique: true,
     },
     Question: {
       type: String,

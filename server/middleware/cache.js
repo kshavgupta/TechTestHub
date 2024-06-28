@@ -1,19 +1,14 @@
-// middleware/cache.js
-import { request } from "express";
 import redis from "../database/redis.js";
 
-// Middleware to check the cache
-const getCache = (key) => {
-  return new Promise((resolve, reject) => {
-    redis.get(key, (err, data) => {
-      if (err) {
-        reject(err); // Reject the Promise with an error if `redis.get` encounters an error
-        return;
-      }
-      resolve(data); // Resolve the Promise with data retrieved from Redis
-    });
-  });
+const getCache = async (key) => {
+  try {
+    const data = await redis.get(key);
+    return data;
+  } catch (err) {
+    throw err;
+  }
 };
+
 const checkCache = (prefix) => {
   return async (req, res, next) => {
     const key = req.params.Topic || req.params.Company || req.user._id; // Assuming your route param matches your prefix
@@ -28,35 +23,43 @@ const checkCache = (prefix) => {
         console.log(
           `Data for ${key} not found in cache. Proceeding to fetch from database...`
         );
-        // Proceed to controller function to fetch from database
         next();
       }
     } catch (error) {
       console.error(
         `Error fetching ${prefix} data from cache: ${error.message}`
       );
-      // Proceed to controller function even if cache retrieval fails
       next();
     }
   };
 };
 
-// Function to set the cache with a TTL
-const setCache = (prefix, key, data, expiration = 3600) => {
+const setCache = async (prefix, key, data, expiration = 3600) => {
   const cacheKey = `${prefix}:${key}`;
-  redis.setex(cacheKey, expiration, JSON.stringify(data));
+  try {
+    await redis.setEx(cacheKey, expiration, JSON.stringify(data));
+    console.log(
+      `Cache set for key ${cacheKey} with expiration ${expiration} seconds`
+    );
+  } catch (err) {
+    console.error(`Error setting cache for key ${cacheKey}: ${err.message}`);
+  }
 };
 
-// Function to invalidate the cache
-const invalidateCache = (prefix, key) => {
+const invalidateCache = async (prefix, key) => {
   const cacheKey = `${prefix}:${key}`;
-  redis.del(cacheKey, (err, response) => {
+  try {
+    const response = await redis.del(cacheKey);
     if (response === 1) {
       console.log(`Cache for key ${cacheKey} invalidated`);
     } else {
       console.log(`Cache for key ${cacheKey} not found`);
     }
-  });
+  } catch (err) {
+    console.error(
+      `Error invalidating cache for key ${cacheKey}: ${err.message}`
+    );
+  }
 };
 
 export { checkCache, setCache, invalidateCache };

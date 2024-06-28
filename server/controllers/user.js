@@ -1,5 +1,6 @@
 import { Questions } from "../models/Question.js";
 import { Users } from "../models/User.js";
+import { Comments } from "../models/Comment.js";
 import { setCache, invalidateCache } from "../middleware/cache.js";
 
 export const viewProfile = async (request, response) => {
@@ -28,6 +29,16 @@ export const viewProfile = async (request, response) => {
 
 export const addQuestion = async (request, response) => {
   try {
+    const existingQuestion = await Questions.findOne({
+      Title: request.body.Title,
+    });
+    if (existingQuestion) {
+      return response.status(400).json({
+        success: false,
+        message: "Question with this title already exists.",
+      });
+    }
+
     const newQuestion = {
       Company: request.body.Company,
       Topic: request.body.Topic,
@@ -49,10 +60,16 @@ export const addQuestion = async (request, response) => {
     invalidateCache("Authors", request.user._id);
 
     // remove the keyword 'return'
-    response.status(201).send(qst);
+    response.status(201).json({
+      success: true,
+      message: "You have uploaded the question.",
+      qst,
+    });
   } catch (error) {
-    console.log(error.message);
-    response.status(500).send({ message: error.message });
+    console.error(error);
+    response
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -67,11 +84,11 @@ export const getQuestions = async (request, response) => {
       "Title Company Topic"
     );
 
-    if (!questions || questions.length === 0) {
-      return response
-        .status(404)
-        .json({ message: "You have not uploaded any questions." });
-    }
+    // if (!questions || questions.length === 0) {
+    //   return response
+    //     .status(404)
+    //     .json({ message: "You have not uploaded any questions." });
+    // }
 
     setCache("Authors", _id, questions, 30 * 24 * 60 * 60);
 
@@ -79,5 +96,61 @@ export const getQuestions = async (request, response) => {
   } catch (error) {
     console.log(error.message);
     response.status(500).send({ message: error.message });
+  }
+};
+
+export const deleteQuestion = async (request, response) => {
+  const { _id } = request.params; // Assuming _id is passed as a parameter
+
+  try {
+    // Find the question by its ID
+    const question = await Questions.findById(_id);
+    if (!question) {
+      return response.status(404).json({
+        error: "Question not found.",
+      });
+    }
+
+    // Invalidate cache for related entities
+    invalidateCache("Companies", question.Company);
+    invalidateCache("Topics", question.Topic);
+    invalidateCache("Authors", request.user._id);
+
+    // Comments Deleted
+    const commentIds = question.Comments;
+    for (const commentId of commentIds) {
+      // Find each comment by its ID
+      const comment = await Comments.findById(commentId); // Missing await
+      if (comment) {
+        // Find the user who posted the comment
+        const user = await Users.findById(comment.postedBy); // Missing await
+        if (user) {
+          user.Reputation -= comment.likes;
+          await user.save();
+        }
+        // Delete the comment
+        await Comments.findByIdAndDelete(commentId); // Missing await
+      }
+    }
+
+    // Delete the question
+    await Questions.findByIdAndDelete(_id);
+
+    // Remove the question ID from the author's questions array
+    const author = await Users.findById(request.user._id);
+    if (author) {
+      author.Questions = author.Questions.filter((id) => id.toString() !== _id); // Ensure the types match
+      await author.save();
+    }
+
+    // Send success response
+    response.status(200).json({
+      message: "Question and associated comments deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Error deleting question:", error);
+    response.status(500).json({
+      error: "Failed to delete the question and associated comments.",
+    });
   }
 };
