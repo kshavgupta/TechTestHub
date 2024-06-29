@@ -11,7 +11,7 @@ export const getQuestion = async (request, response) => {
     if (!ques) {
       return response
         .status(404)
-        .json({ message: "No question found with the specified Topic" });
+        .json({ success: false, message: "Question no longer exists." });
     }
 
     return response.status(200).json({
@@ -23,7 +23,9 @@ export const getQuestion = async (request, response) => {
     });
   } catch (error) {
     console.log(error.message);
-    response.status(500).send({ message: error.message });
+    response
+      .status(500)
+      .json({ success: false, message: "Internal server error." });
   }
 };
 
@@ -34,7 +36,7 @@ export const getQuestionsbyTopic = async (request, response) => {
     const ques = await Questions.find(
       { Topic },
       { _id: 1, Company: 1, Title: 1 }
-    );
+    ).sort({ createdAt: -1 });
 
     if (!ques || ques.length === 0) {
       return response
@@ -53,7 +55,9 @@ export const getQuestionsbyTopic = async (request, response) => {
     return response.status(200).json({ data: data });
   } catch (error) {
     console.log(error.message);
-    response.status(500).send({ message: error.message });
+    response
+      .status(500)
+      .json({ success: false, message: "Internal server error." });
   }
 };
 
@@ -64,7 +68,7 @@ export const getQuestionsbyCompany = async (request, response) => {
     const ques = await Questions.find(
       { Company },
       { _id: 1, Topic: 1, Title: 1 }
-    );
+    ).sort({ createdAt: -1 });
 
     if (!ques || ques.length === 0) {
       return response
@@ -83,7 +87,9 @@ export const getQuestionsbyCompany = async (request, response) => {
     return response.status(200).json({ data: data });
   } catch (error) {
     console.log(error.message);
-    response.status(500).send({ message: error.message });
+    response
+      .status(500)
+      .json({ success: false, message: "Internal server error." });
   }
 };
 
@@ -93,10 +99,10 @@ export const getComments = async (request, response) => {
 
     const question = await Questions.findById(_id);
 
-    if (question.length == 0) {
+    if (!question) {
       return response
         .status(404)
-        .json({ message: "No question found with the specified Title" });
+        .json({ success: false, message: "Question no longer exists" });
     }
 
     const commentIds = question.Comments;
@@ -104,11 +110,13 @@ export const getComments = async (request, response) => {
     const comments = await Comments.find(
       { _id: { $in: commentIds } },
       "text postedBy username likes"
-    );
+    ).sort({ createdAt: -1 });
 
     return response.status(200).json({ comments });
   } catch (error) {
     console.log(error.message);
-    response.status(500).send({ message: error.message });
+    response
+      .status(500)
+      .json({ success: false, message: "Internal server error." });
   }
 };

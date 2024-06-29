@@ -9,7 +9,9 @@ export const viewProfile = async (request, response) => {
     const user = await Users.findById(_id);
 
     if (!user) {
-      return response.status(404).json({ message: "User Not Found" });
+      return response
+        .status(404)
+        .json({ success: false, message: "User no longer exists" });
     }
 
     const userDetails = {
@@ -23,7 +25,9 @@ export const viewProfile = async (request, response) => {
     return response.status(200).json(userDetails);
   } catch (error) {
     console.log(error.message);
-    response.status(500).send({ message: error.message });
+    response
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -63,7 +67,6 @@ export const addQuestion = async (request, response) => {
     response.status(201).json({
       success: true,
       message: "You have uploaded the question.",
-      qst,
     });
   } catch (error) {
     console.error(error);
@@ -82,7 +85,7 @@ export const getQuestions = async (request, response) => {
     const questions = await Questions.find(
       { _id: { $in: questionIds } },
       "Title Company Topic"
-    );
+    ).sort({ createdAt: -1 });
 
     // if (!questions || questions.length === 0) {
     //   return response
@@ -95,7 +98,10 @@ export const getQuestions = async (request, response) => {
     return response.status(200).json({ questions });
   } catch (error) {
     console.log(error.message);
-    response.status(500).send({ message: error.message });
+    response.status(500).json({
+      success: false,
+      message: "Internal server error. Failed to load questions.",
+    });
   }
 };
 
@@ -107,7 +113,8 @@ export const deleteQuestion = async (request, response) => {
     const question = await Questions.findById(_id);
     if (!question) {
       return response.status(404).json({
-        error: "Question not found.",
+        success: false,
+        message: "Question not found.",
       });
     }
 
@@ -145,12 +152,14 @@ export const deleteQuestion = async (request, response) => {
 
     // Send success response
     response.status(200).json({
-      message: "Question and associated comments deleted successfully.",
+      success: true,
+      message: "Question deleted successfully.",
     });
   } catch (error) {
     console.error("Error deleting question:", error);
     response.status(500).json({
-      error: "Failed to delete the question and associated comments.",
+      success: false,
+      message: "Internal server error.",
     });
   }
 };

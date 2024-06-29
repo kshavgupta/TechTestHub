@@ -8,7 +8,7 @@ export default function authenticateToken(request, response, next) {
   if (!token) {
     return response
       .status(401)
-      .json({ success: false, message: "Please sign in to contribute." });
+      .json({ success: false, message: "Please sign in to your account." });
   }
 
   try {

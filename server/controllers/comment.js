@@ -10,7 +10,7 @@ export const addComment = async (request, response) => {
     if (!question) {
       return response
         .status(404)
-        .json({ message: "No question found with the specified Title" });
+        .json({ success: false, message: "Question no longer exists" });
     }
 
     const newComment = {
@@ -24,12 +24,15 @@ export const addComment = async (request, response) => {
     question.Comments.push(cmt._id);
     await question.save();
 
-    return response
-      .status(201)
-      .json({ message: "Comment added successfully", cmt, question }); // Remove cmt and question
+    return response.status(201).json({
+      success: true,
+      message: "Comment added successfully",
+    });
   } catch (error) {
     console.log(error.message);
-    response.status(500).send({ message: error.message });
+    response
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -40,14 +43,16 @@ export const deleteComment = async (request, response) => {
     const comment = await Comments.findById(_id);
     if (!comment) {
       return response.status(404).json({
-        error: "Comment not found.",
+        success: false,
+        message: "Comment not found.",
       });
     }
 
     // Check if the user is the author of the comment
     if (comment.postedBy.toString() !== userId) {
       return response.status(403).json({
-        error: "You are not authorized to delete this comment.",
+        success: false,
+        message: "You are not authorized to delete this comment.",
       });
     }
 
@@ -61,13 +66,14 @@ export const deleteComment = async (request, response) => {
 
     // Send success response
     response.status(200).json({
+      success: true,
       message: "Comment deleted successfully.",
     });
   } catch (error) {
     console.error("Error deleting comment:", error);
-    response.status(500).json({
-      error: "Failed to delete the comment.",
-    });
+    response
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
