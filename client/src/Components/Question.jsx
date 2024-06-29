@@ -1,30 +1,50 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import { alpha, Box, Typography, Container, Card, CardHeader, CardContent, CircularProgress, 
-  TextField, Button, CardMedia, Grid, CssBaseline,
-  Divider, IconButton } 
+  TextField, Button, CardMedia, Grid, CssBaseline, Dialog, DialogTitle, DialogContent, 
+  DialogContentText, DialogActions, Divider, IconButton } 
 from '@mui/material';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import DeleteIcon from '@mui/icons-material/Delete';
 // import { GlobalStateContext } from './Context';
 import NavbarAlt from './NavbarAlt';
 import Links from './Links';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-const Question = () => {
+const Question = ({mode, toggleColorMode}) => {
   const [questionInfo, setQuestionInfo] = useState([]);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newComment, setNewComment] = useState('');
   const { Title } = useParams();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const location = useLocation();
   const { _id } = location.state || {};
   // const { userLoggedIn, currentUsername } = useContext(GlobalStateContext);
   const { enqueueSnackbar } = useSnackbar();
   const [preview, setPreview] = useState(false);
+
+  const [open, setOpen] = useState(false);
+  const [selectedComment, setSelectedComment] = useState({});
+
+  const handleClickOpen = (comment) => {
+    setSelectedComment(comment);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedComment(null);
+  };
+
+  const handleConfirmDelete = () => {
+    handleDelete(selectedComment); 
+    handleClose();
+  };
 
   const handlePreview = () => {
     setPreview(!preview);
@@ -32,46 +52,44 @@ const Question = () => {
 
   const fetchComments = useCallback(() => {
     axios
-      .get(`http://localhost:5555/api/v1/question/getComments/${_id}`)
+      .get(`https://techtesthub.onrender.com/api/v1/question/getComments/${_id}`)
       .then((response) => {
         if (response.data && Array.isArray(response.data.comments)) {
           setComments(response.data.comments);
-        } else {
-          console.error('Invalid data structure received from the API for comments.');
         }
       })
       .catch((error) => {
+        const message = error.response?.data?.message || 'An error occurred';
+        enqueueSnackbar(message, { variant: 'error' });
         console.log(error);
       });
-  }, [_id]);
+  }, [_id, enqueueSnackbar]);
 
   useEffect(() => {
     setLoading(true);
     axios
-      .get(`http://localhost:5555/api/v1/question/getQuestion/${_id}`)
+      .get(`https://techtesthub.onrender.com/api/v1/question/getQuestion/${_id}`)
       .then((response) => {
         if (response.data && Array.isArray(response.data.data)) {
           setQuestionInfo(response.data.data);
-        } else {
-          console.error('Invalid data structure received from the API.');
         }
         setLoading(false);
       })
       .catch((error) => {
+        const message = error.response?.data?.message || 'An error occurred';
+        enqueueSnackbar(message, { variant: 'error' });
         console.log(error);
-        setLoading(false);
       });
 
     fetchComments();
 
-  }, [_id, fetchComments]);
+  }, [_id, fetchComments, enqueueSnackbar]);
 
   const handleAddComment = () => {
     const token = localStorage.getItem('token');
 
     if (!token) {
       enqueueSnackbar('Please log in to add a comment.', { variant: 'warning' });
-      navigate('/login');
       return;
     }
 
@@ -81,47 +99,100 @@ const Question = () => {
     }
   
     axios
-      .post(`http://localhost:5555/api/v1/comment/addComment/${_id}`, {
+      .post(`https://techtesthub.onrender.com/api/v1/comment/addComment/${_id}`, {
         text: newComment,
       }, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       })
-      .then(() => {
-        enqueueSnackbar('Comment added successfully.', { variant: 'success' });
+      .then((response) => {
+        const { message } = response.data;
+        enqueueSnackbar(message, { variant: 'success' });
         setNewComment('');
         fetchComments();
       })
       .catch((error) => {
-        console.error('Error adding comment:', error);
-        enqueueSnackbar('Failed to add comment. Please try again later.', { variant: 'error' });
+        const message = error.response?.data?.message || 'An error occurred';
+        enqueueSnackbar(message, { variant: 'error' });
+        console.log(error);
       });
   };
-  
+
   const handleLikeComment = (commentId) => {
     const token = localStorage.getItem('token');
-
+  
     if (!token) {
-      enqueueSnackbar('Please log in to like a comment.', { variant: 'warning' });
-      navigate('/login');
+      enqueueSnackbar('Please log in to upvote a comment.', { variant: 'warning' });
       return;
     }
-
+  
     axios
-      .patch(`http://localhost:5555/api/v1/comment/likeComment/${commentId}`, {}, {
+      .patch(`https://techtesthub.onrender.com/api/v1/comment/likeComment/${commentId}`, {}, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       })
-      .then(() => {
-        enqueueSnackbar('You have liked the comment', { variant: 'success' });
+      .then((response) => {
+        const { message } = response.data;
+        enqueueSnackbar(message, { variant: 'success' });
         fetchComments();
       })
       .catch((error) => {
-        enqueueSnackbar('You have already liked the comment', { variant: 'error' });
+        const message = error.response?.data?.message || 'An error occurred';
+        enqueueSnackbar(message, { variant: 'error' });
         console.log(error);
       });
+  };
+  
+  const handleDislikeComment = (commentId) => {
+    const token = localStorage.getItem('token');
+  
+    if (!token) {
+      enqueueSnackbar('Please log in to downvote a comment.', { variant: 'warning' });
+      return;
+    }
+  
+    axios
+      .patch(`https://techtesthub.onrender.com/api/v1/comment/dislikeComment/${commentId}`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      .then((response) => {
+        const { message } = response.data;
+        enqueueSnackbar(message, { variant: 'success' });
+        fetchComments();
+      })
+      .catch((error) => {
+        const message = error.response?.data?.message || 'An error occurred';
+        enqueueSnackbar(message, { variant: 'error' });
+        console.log(error);
+      });
+  };
+
+  const handleDelete = (comment) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      enqueueSnackbar('Please log in to delete the comment.', { variant: 'warning' });
+      return;
+    }
+
+    axios.delete(`https://techtesthub.onrender.com/api/v1/comment/deleteComment/${comment._id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    .then((response) => {
+      const { message } = response.data;
+      enqueueSnackbar(message, { variant: 'success' });
+      fetchComments();
+    })
+    .catch((error) => {
+      const message = error.response?.data?.message || 'An error occurred';
+      enqueueSnackbar(message, { variant: 'error' });
+      console.log(error);
+    });
   };
   
   return (
@@ -140,7 +211,7 @@ const Question = () => {
       <CssBaseline />
 
       {/* Navbar */}
-      <NavbarAlt />
+      <NavbarAlt mode={ mode } toggleColorMode={ toggleColorMode }/>
 
       <Container
         sx={{
@@ -215,7 +286,7 @@ const Question = () => {
               fullWidth
               multiline
               rows={4}
-              placeholder="Share your thoughts here. To include code, surround it with 3 backticks ``` (Markdown is supported)"
+              placeholder="Share your thoughts here."
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               sx={{
@@ -253,47 +324,83 @@ const Question = () => {
                   p: 1,
                 }}
               >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    pr: 2,
-                  }}
-                >
-                  <CardHeader
-                    // avatar={testimonial.avatar}
-                    title={comment.username}
+                  <CardHeader 
+                    title={comment.username} 
+                    action={
+                      <IconButton
+                        sx={{ mr: 1.83}}
+                        aria-label="delete"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClickOpen(comment)
+                        }}  
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    }
                   />
-                </Box>
                 <CardContent>
                   <Typography variant="h6" color="text.secondary">
                     {comment.text}
                   </Typography>
-                </CardContent>
-
-                {/* working here */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Typography variant="h6" color="text.secondary">
-                    Likes: {comment.likes}
-                  </Typography>
-                  <IconButton
-                    onClick={() => handleLikeComment(comment._id)}
-                    sx={{ ml: 1 }}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      mt: 2,
+                    }}
                   >
-                    <ThumbUpIcon />
-                  </IconButton>
-                </Box>
-
+                    <Typography variant="h6" color="text.secondary">
+                      Upvotes: {comment.likes}
+                    </Typography>
+                    <Box sx={{ flexGrow: 1 }} />
+                    <IconButton
+                      onClick={() => handleLikeComment(comment._id)}
+                      sx={{ color: 'green' }}
+                    >
+                      <ArrowDropUpIcon sx={{ fontSize: 40 }}/>
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleDislikeComment(comment._id)}
+                      sx={{ color: 'red' }}
+                    >
+                      {/* <ThumbDownIcon /> */}
+                      <ArrowDropDownIcon sx={{ fontSize: 40 }} />
+                    </IconButton>
+                  </Box>
+                </CardContent>
               </Card>
             </Grid>
           ))}
         </Grid>
+        <Dialog
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+          PaperProps={{
+            style: {
+              backgroundSize: 'cover',
+              borderRadius: '10px',
+              outline: '1px solid',
+            },
+          }}
+        >
+          <DialogTitle id="alert-dialog-title">{"Are you sure?"}</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Do you really want to delete this comment?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose} color="primary">
+              No
+            </Button>
+            <Button onClick={handleConfirmDelete} color="primary" autoFocus>
+              Yes
+            </Button>
+          </DialogActions>
+        </Dialog>
         <Box mt={10}>
           <Divider />
           <Links />

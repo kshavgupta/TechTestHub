@@ -7,10 +7,10 @@ import {
   DialogContentText,
 } from '@mui/material';
 
-const Modal = ({ mode, open, onClose, children }) => {
+const Modal = ({ open, onClose, children }) => {
 
-  const backgroundColor = (mode) =>
-    mode === 'light' ? 'white' : 'black';
+  // const backgroundColor = (mode) =>
+  //   mode === 'light' ? 'white' : 'black';
 
   return (
     
@@ -24,7 +24,7 @@ const Modal = ({ mode, open, onClose, children }) => {
             backgroundSize: 'cover',
             borderRadius: '10px',
             outline: '1px solid',
-            backgroundColor,
+            // backgroundColor,
           },
         }}
       >

@@ -15,7 +15,7 @@ export default function Home({ mode, toggleColorMode }) {
     <div>
       <CssBaseline />
       <AppAppBar mode={mode} toggleColorMode={toggleColorMode} />
-      <Welcome mode={mode}/>
+      <Welcome mode={mode} toggleColorMode={toggleColorMode}/>
       <Box sx={{ bgcolor: 'background.default' }}>
         <Divider />
         <Upload />

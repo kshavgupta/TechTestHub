@@ -44,13 +44,15 @@ const SignUp = () => {
 
   const SignupUser = (postData) => {
     axios
-      .post('http://localhost:5555/api/v1/auth/register/', postData)
-      .then(() => {
-        enqueueSnackbar('Signup successful', { variant: 'success' });
+      .post('https://techtesthub.onrender.com/api/v1/auth/register/', postData)
+      .then((response) => {
+        const { message } = response.data;
+        enqueueSnackbar(message, { variant: 'success' });
         navigate('/SignIn');
       })
       .catch((error) => {
-        enqueueSnackbar('Error', { variant: 'error' });
+        const message = error.response?.data?.message || 'An error occurred';
+        enqueueSnackbar(message, { variant: 'error' });
         console.log(error);
       });
   };

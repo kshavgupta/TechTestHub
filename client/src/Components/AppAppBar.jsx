@@ -42,11 +42,19 @@ function AppAppBar({ mode, toggleColorMode }) {
 
   const handleProfileClick = () => {
     if(isLoggedIn){
-      navigate(`Profile/${currentUsername}`, { state: { name: mode } });
+      navigate(`Profile/${currentUsername}`, { 
+        state: { 
+          mode: mode,
+        }
+      });
     }
     else{
       enqueueSnackbar('Please, sign in to view Profile.', { variant: 'error' });
     }
+  }
+
+  const handleLogoClick = () => {
+    navigate('/');
   }
 
   const handleSignOut = () => {
@@ -100,12 +108,13 @@ function AppAppBar({ mode, toggleColorMode }) {
                 px: 0,
               }}
             >
-              {/* <img
-                src="/logo.png"
-                style={logoStyle}
-                alt="logo of TechTestHub"
-              /> */}
               <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+                <img
+                  src="/logo.png"
+                  style={{ height: 30, cursor: 'pointer', marginLeft: 30, marginRight: 20 }}  // Adjust height and any additional styles as needed
+                  alt="logo of TechTestHub"
+                  onClick={handleLogoClick}
+                />
                 <MenuItem
                   onClick={() => scrollToSection('welcome')}
                   sx={{ py: '6px', px: '12px' }}
@@ -179,16 +188,6 @@ function AppAppBar({ mode, toggleColorMode }) {
                   Sign in
                 </Button>
                 )}
-              {/* <Button
-                color="primary"
-                variant="text"
-                size="small"
-                component="a"
-                href="/SignIn"
-                target="_blank"
-              >
-                Sign in
-              </Button> */}
               <Button
                 color="primary"
                 variant="contained"
@@ -263,8 +262,6 @@ function AppAppBar({ mode, toggleColorMode }) {
                       color="primary"
                       variant="outlined"
                       sx={{ width: '100%' }}
-                      // component="a"
-                      // target="_blank"
                       onClick={handleSignOut}
                     >
                       Sign out
@@ -281,16 +278,6 @@ function AppAppBar({ mode, toggleColorMode }) {
                       Sign in
                     </Button>
                   )}
-                    {/* <Button
-                      color="primary"
-                      variant="outlined"
-                      component="a"
-                      href="/SignIn"
-                      target="_blank"
-                      sx={{ width: '100%' }}
-                    >
-                      Sign in
-                    </Button> */}
                   </MenuItem>
                 </Box>
               </Drawer>

@@ -16,7 +16,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 
 function NavbarAlt() {
   const [open, setOpen] = React.useState(false);
-  const { userLoggedIn, currentUsername } = React.useContext(GlobalStateContext);
+  const { isLoggedIn, currentUsername, setIsLoggedIn, setCurrentUsername } = React.useContext(GlobalStateContext);
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -25,7 +25,7 @@ function NavbarAlt() {
   };
 
   const handleProfileClick = () => {
-    if(userLoggedIn){
+    if(isLoggedIn){
       navigate(`/Profile/${currentUsername}`);
     }
     else{
@@ -33,8 +33,20 @@ function NavbarAlt() {
     }
   }
 
+  const handleSignOut = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    setCurrentUsername(null);
+    navigate('/');
+    enqueueSnackbar('You have been signed out.', { variant: 'success' });
+  };
+
   const handleHomeClick = () => {
     navigate("/");
+  }
+
+  const handleLogoClick = () => {
+    navigate('/');
   }
 
   return (
@@ -80,11 +92,12 @@ function NavbarAlt() {
                 px: 0,
               }}
             >
-              {/* <img
+              <img
                 src="/logo.png"
-                style={logoStyle}
+                style={{ height: 30, cursor: 'pointer', marginLeft: 30, marginRight: 20 }}  // Adjust height and any additional styles as needed
                 alt="logo of TechTestHub"
-              /> */}
+                onClick={handleLogoClick}
+              />
               <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
                 <MenuItem
                   onClick={handleHomeClick}
@@ -111,16 +124,27 @@ function NavbarAlt() {
                 alignItems: 'center',
               }}
             >
-              <Button
-                color="primary"
-                variant="text"
-                size="small"
-                component="a"
-                href="/SignIn"
-                target="_blank"
-              >
-                Sign in
-              </Button>
+              {isLoggedIn ? (
+                <Button
+                  color="primary"
+                  variant="text"
+                  size="small"
+                  onClick={handleSignOut}
+                >
+                  Sign out
+                </Button>
+              ) : (
+                <Button
+                  color="primary"
+                  variant="text"
+                  size="small"
+                  component="a"
+                  href="/SignIn"
+                  target="_blank"
+                >
+                  Sign in
+                </Button>
+                )}
               <Button
                 color="primary"
                 variant="contained"
@@ -151,16 +175,6 @@ function NavbarAlt() {
                     flexGrow: 1,
                   }}
                 >
-                  {/* <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'end',
-                      flexGrow: 1,
-                    }}
-                  >
-                    <ToggleColorMode mode={mode} toggleColorMode={toggleColorMode} />
-                  </Box> */}
                   <MenuItem onClick={handleHomeClick}>
                     Home
                   </MenuItem>
@@ -181,6 +195,16 @@ function NavbarAlt() {
                     </Button>
                   </MenuItem>
                   <MenuItem>
+                  {isLoggedIn ? (
+                    <Button
+                      color="primary"
+                      variant="outlined"
+                      sx={{ width: '100%' }}
+                      onClick={handleSignOut}
+                    >
+                      Sign out
+                    </Button>
+                  ) : (
                     <Button
                       color="primary"
                       variant="outlined"
@@ -191,6 +215,7 @@ function NavbarAlt() {
                     >
                       Sign in
                     </Button>
+                  )}
                   </MenuItem>
                 </Box>
               </Drawer>
@@ -201,5 +226,10 @@ function NavbarAlt() {
     </div>
   );
 }
+
+// NavbarAlt.propTypes = {
+//   mode: PropTypes.oneOf(['dark', 'light']).isRequired,
+//   toggleColorMode: PropTypes.func.isRequired,
+// };
 
 export default NavbarAlt;

@@ -77,7 +77,7 @@ export default function FAQ() {
             id="panel2d-header"
           >
             <Typography component="h3" variant="subtitle2">
-              Can I return the product if it doesn&apos;t meet my expectations?
+              Do I need to sign in to upload questions?
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
@@ -86,9 +86,8 @@ export default function FAQ() {
               gutterBottom
               sx={{ maxWidth: { sm: '100%', md: '70%' } }}
             >
-              Absolutely! We offer a hassle-free return policy. If you&apos;re not
-              completely satisfied, you can return the product within [number of
-              days] days for a full refund or exchange.
+              Yes, signing in is required to upload questions to the platform. 
+              This helps maintain quality and allows users to track their contributions.
             </Typography>
           </AccordionDetails>
         </Accordion>
@@ -102,7 +101,7 @@ export default function FAQ() {
             id="panel3d-header"
           >
             <Typography component="h3" variant="subtitle2">
-              What makes your product stand out from others in the market?
+              Is there a way to bookmark or save questions for later?
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
@@ -111,9 +110,8 @@ export default function FAQ() {
               gutterBottom
               sx={{ maxWidth: { sm: '100%', md: '70%' } }}
             >
-              Our product distinguishes itself through its adaptability, durability,
-              and innovative features. We prioritize user satisfaction and
-              continually strive to exceed expectations in every aspect.
+              Currently, the platform supports browsing and discussing questions. 
+              Saving or bookmarking features may be added in future updates to enhance user experience.
             </Typography>
           </AccordionDetails>
         </Accordion>
@@ -127,7 +125,7 @@ export default function FAQ() {
             id="panel4d-header"
           >
             <Typography component="h3" variant="subtitle2">
-              Is there a warranty on the product, and what does it cover?
+              Is there a mobile app available for the platform?
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
@@ -136,10 +134,8 @@ export default function FAQ() {
               gutterBottom
               sx={{ maxWidth: { sm: '100%', md: '70%' } }}
             >
-              Yes, our product comes with a [length of warranty] warranty. It covers
-              defects in materials and workmanship. If you encounter any issues
-              covered by the warranty, please contact our customer support for
-              assistance.
+              At present, the platform is accessible via web browsers on desktop and mobile devices. 
+              Considerations for a mobile app may be explored based on user feedback and demand.
             </Typography>
           </AccordionDetails>
         </Accordion>

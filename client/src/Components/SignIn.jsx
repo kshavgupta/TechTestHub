@@ -3,10 +3,9 @@ import axios from 'axios';
 import { GlobalStateContext } from './Context';
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
-import { TextField, Link, Button, Typography, Container, Box, InputAdornment, Checkbox, FormControlLabel, IconButton, Divider } from '@mui/material';
+import { TextField, Link, Button, Typography, Container, Box, InputAdornment, Checkbox, FormControlLabel, IconButton } from '@mui/material';
 import { AccountCircle, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { FcGoogle } from '@react-icons/all-files/fc/FcGoogle';
 import getLPTheme from './getLPTheme';
 
 function Copyright(props) {
@@ -33,49 +32,28 @@ const SignIn = () => {
 
   const handleLogin = () => {
     axios
-      .post('http://localhost:5555/api/v1/auth/login/', {
+      .post('https://techtesthub.onrender.com/api/v1/auth/login/', {
         Username,
         Password,
       })
       .then((response) => {
-        const data = response.data;
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-          enqueueSnackbar('Login successful', { variant: 'success' });
+        const {token, message} = response.data;
+        if (token) {
+          localStorage.setItem('token', token);
+          enqueueSnackbar(message, { variant: 'success' });
           navigate('/');
           setIsLoggedIn(true);
           setCurrentUsername(Username);
         } else {
-          alert('Login failed. Please check your credentials.');
+          enqueueSnackbar(message, { variant: 'error' });
         }
       })
       .catch((error) => {
-        console.error('Error during login:', error);
-        alert('An error occurred. Please try again later.');
+        const message = error.response?.data?.message || 'An error occurred';
+        enqueueSnackbar(message, { variant: 'error' });
+        console.log(error);
       });
   };
-
-  // const handleGoogleLogin = () => {
-  //   // window.location.href = 'http://localhost:5555/api/v1/auth/google';
-  //   axios
-  //     .get('http://localhost:5555/api/v1/auth/google')
-  //     .then((response) => {
-  //       const data = response.data;
-  //       if (data.token) {
-  //         localStorage.setItem('token', data.token);
-  //         enqueueSnackbar('Login successful', { variant: 'success' });
-  //         navigate('/');
-  //         // setUserLoggedIn(true);
-  //         // setCurrentUsername(Username);
-  //       } else {
-  //         alert('Login failed. Please check your credentials.');
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       console.error('Error during login:', error);
-  //       alert('An error occurred. Please try again later.');
-  //     });
-  // };
 
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
@@ -180,23 +158,6 @@ const SignIn = () => {
             >
               Sign In
             </Button>
-            {/* <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-              <Divider sx={{ flexGrow: 1 }} />
-              <Typography variant="body1" color="text.secondary" sx={{ mx: 2 }}>
-                or
-              </Typography>
-              <Divider sx={{ flexGrow: 1 }} />
-            </Box>
-            <Button
-              fullWidth
-              variant="outlined"
-              color="primary"
-              startIcon={<FcGoogle />}
-              onClick={handleGoogleLogin}
-              sx={{ mt: 2 }}
-            >
-              Sign in with Google
-            </Button> */}
             <Box sx={{ mt: 1 }}>
               <Typography variant="body1" align="center" color="text.secondary" >
                 <span style={{ marginRight: '10px' }}>Don't have an account yet?</span>

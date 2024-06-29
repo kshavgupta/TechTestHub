@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import options1 from '../Topics';
+import options2 from '../Companies';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
 import { FormControl, Container, Grid, TextField, Button, MenuItem, InputLabel, Select, Typography } from '@mui/material';
@@ -28,24 +30,29 @@ const Upload = () => {
 
     if (!token) {
       enqueueSnackbar('Please log in to upload a question.', { variant: 'warning' });
-      navigate('/SignIn');
       return;
     }
 
     axios
-      .post('http://localhost:5555/api/v1/user/addQuestion/', postData, {
+      .post('https://techtesthub.onrender.com/api/v1/user/addQuestion/', postData, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       })
-      .then(() => {
+      .then((response) => {
         setLoading(false);
-        enqueueSnackbar('Question uploaded successfully', { variant: 'success' });
+        const { message } = response.data;
+        enqueueSnackbar(message, { variant: 'success' });
+        setSelectedCompany('');
+        setSelectedTopic('');
+        setTitle('');
+        setQuestion('');
         navigate('/');
       })
       .catch((error) => {
         setLoading(false);
-        enqueueSnackbar('Error', { variant: 'error' });
+        const message = error.response?.data?.message || 'An error occurred';
+        enqueueSnackbar(message, { variant: 'error' });
         console.log(error);
       });
   }, [enqueueSnackbar, navigate]);
@@ -149,10 +156,6 @@ const Upload = () => {
     }
     setLoading(true); 
   };
-  
-
-  const options1 = ["Dynamic Programming", "Stack", "Graph", "Queue", "Greedy", "Topological Sort", "Binary Search"];
-  const options2 = ["Atlassian", "Amazon", "Arcesium", "LinkedIn", "Google"];
 
   const handleTopicChange = (event) => {
     setSelectedTopic(event.target.value);

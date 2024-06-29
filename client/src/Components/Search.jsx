@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import ShowQuestionsbyTopic from './ShowQuestionsbyTopic';
 import ShowQuestionsbyCompany from './ShowQuestionsbyCompany';
+import options1 from "../Topics"
+import options2 from "../Companies"
 import Modal from './Modal';
 import { Button, Container, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from '@mui/material';
 
@@ -9,9 +11,6 @@ export default function Search({ mode }) {
   const [selectedCompany, setSelectedCompany] = useState('');
   const [searchState, setSearchState] = useState(0);
   const [isModalOpen, setModalOpen] = useState(false);
-
-  const options1 = ["Dynamic Programming", "Stack", "Graph", "Queue", "Greedy", "Topological Sort", "Binary Search"];
-  const options2 = ["Atlassian", "Amazon", "Arcesium", "LinkedIn", "Google"];
 
   const handleTopicChange = (event) => {
     setSelectedTopic(event.target.value);
@@ -133,12 +132,12 @@ export default function Search({ mode }) {
         </Grid>
       {/* </Box> */}
 
-        <Modal open={isModalOpen} onClose={handleModalClose} mode={ mode }>
+        <Modal open={isModalOpen} onClose={handleModalClose}>
           {searchState === 1 && selectedCompany && (
-            <ShowQuestionsbyCompany company={selectedCompany} />
+            <ShowQuestionsbyCompany company={selectedCompany}/>
           )}
           {searchState === 2 && selectedTopic && (
-            <ShowQuestionsbyTopic topic={selectedTopic} />
+            <ShowQuestionsbyTopic topic={selectedTopic}/>
           )}
         </Modal>
       

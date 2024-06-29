@@ -2,11 +2,6 @@ import * as React from 'react';
 import { Box, Button, Container, Link, Stack, TextField, Typography } from '@mui/material';
 import Links from './Links';
 
-// const logoStyle = {
-//   width: '140px',
-//   height: 'auto',
-// };
-
 export default function Footer() {
   return (
     <Container

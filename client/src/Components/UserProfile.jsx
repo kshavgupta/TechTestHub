@@ -6,7 +6,7 @@ import {
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Grid, IconButton, 
   Stack, Typography 
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import NavbarAlt from './NavbarAlt';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { alpha } from '@mui/material/styles';
 import { useSnackbar } from 'notistack';
@@ -23,7 +23,7 @@ const UserProfile = () => {
   const fetchProfile = useCallback((token) => {
     setLoading(true);
     axios
-      .get(`http://localhost:5555/api/v1/user/viewProfile/`, {
+      .get(`https://techtesthub.onrender.com/api/v1/user/viewProfile/`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -33,15 +33,16 @@ const UserProfile = () => {
         setLoading(false);
       })
       .catch((error) => {
-        console.error('Error fetching user profile:', error);
-        setLoading(false);
+        const message = error.response?.data?.message || 'An error occurred';
+        enqueueSnackbar(message, { variant: 'error' });
+        console.log(error);
       });
-  }, []);
+  }, [enqueueSnackbar]);
 
   const fetchQuestions = useCallback((token) => {
     setLoading(true);
     axios
-      .get(`http://localhost:5555/api/v1/user/getQuestions`, {
+      .get(`https://techtesthub.onrender.com/api/v1/user/getQuestions`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -50,33 +51,28 @@ const UserProfile = () => {
         if (response.data && Array.isArray(response.data.questions)) {
           setUserQuestions(response.data.questions);
         } else {
-          console.log('No questions uploaded');
           setUserQuestions([]);
         }
         setLoading(false);
       })
       .catch((error) => {
+        const message = error.response?.data?.message || 'An error occurred';
+        enqueueSnackbar(message, { variant: 'error' });
         console.log(error);
-        setLoading(false);
       });
-  }, []);
+  }, [enqueueSnackbar]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       enqueueSnackbar('Please log in to upload a question.', { variant: 'warning' });
       setLoading(false);
-      navigate('/login');
       return;
     }
 
     fetchProfile(token);
     fetchQuestions(token);
   }, [enqueueSnackbar, navigate, fetchProfile, fetchQuestions]);
-
-  const handleBackClick = () => {
-    navigate("/");
-  }
 
   const handleQuestionClick = (question) => {
     navigate(`/Question/${question.Title}`, { state: { _id: question._id } });
@@ -107,19 +103,21 @@ const UserProfile = () => {
       return;
     }
 
-    axios.delete(`http://localhost:5555/api/v1/user/deleteQuestion/${question._id}`, {
+    axios.delete(`https://techtesthub.onrender.com/api/v1/user/deleteQuestion/${question._id}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
-    .then(() => {
-      enqueueSnackbar('Question deleted successfully.', { variant: 'success' });
+    .then((response) => {
+      const { message } = response.data;
+      enqueueSnackbar(message, { variant: 'success' });
       fetchQuestions(token); 
-      fetchProfile(token); // Call fetchQuestions to update the list of questions
+      fetchProfile(token); 
     })
     .catch((error) => {
-      console.error('Error deleting question:', error);
-      enqueueSnackbar('Failed to delete the question.', { variant: 'error' });
+      const message = error.response?.data?.message || 'An error occurred';
+      enqueueSnackbar(message, { variant: 'error' });
+      console.log(error);
     });
   };
 
@@ -138,19 +136,15 @@ const UserProfile = () => {
       })}
     >
       <CssBaseline />
-      <Grid item xs={12}>
-        <IconButton onClick={handleBackClick}>
-          <ArrowBackIcon />
-        </IconButton>
-      </Grid>
+      <NavbarAlt />
       <Container
         sx={{
-          pt: { xs: 2, sm: 4},
-          pb: { xs: 8, sm: 16 },
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          pt: { xs: 10, sm: 15 },
+          pb: { xs: 8, sm: 16 },
           gap: { xs: 6, sm: 6 },
         }}
       >
@@ -253,7 +247,7 @@ const UserProfile = () => {
                   </Grid>
                   
                   {userQuestions.map((question, index) => (
-                    <Grid item xs={12} key={index}>
+                    <Grid item xs={12} key={index} >
                       <Card variant='outlined'
                         onClick={() => handleQuestionClick(question)}
                         sx={{ 
